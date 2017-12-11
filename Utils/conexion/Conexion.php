@@ -13,7 +13,7 @@ class Conexion {
     private $DBname = 'test';
     private $user = 'root';
     private $pass = '';
-    private $error = '';
+    private $error = false;
     private $conexion = null;
 
     function __construct(){
@@ -21,7 +21,7 @@ class Conexion {
             $connect = new PDO("mysql:host=$this->host;dbname=$this->DBname", $this->user, $this->pass);
             $this->conexion = $connect;
         } catch(PDOException $e){
-            $this->error = $e->getMessage();
+            $this->error = true;
         }
     }
 
@@ -34,21 +34,25 @@ class Conexion {
     }
 
     function select(String $query, array $params = []){
-        if(count($params) == 0){ // Si es una query sin parámetros
-            $array = [];
-            $stmt = $this->conexion->query($query);
-            while($row = $stmt->fetchObject()){
-                array_push($array, $row);
+        try{
+            if(count($params) == 0){ // Si es una query sin parámetros
+                $array = [];
+                $stmt = $this->conexion->query($query);
+                while($row = $stmt->fetchObject()){
+                    array_push($array, $row);
+                }
+                return $array;
+            } else { // Si es una query con parámetros
+                $stmt = $this->conexion->prepare($query);
+                $stmt->execute($params);
+                $array = [];
+                while($row = $stmt->fetchObject()){
+                    array_push($array, $row);
+                }
+                return $array;
             }
-            return $array;
-        } else { // Si es una query con parámetros
-            $stmt = $this->conexion->prepare($query);
-            $stmt->execute($params);
-            $array = [];
-            while($row = $stmt->fetchObject()){
-                array_push($array, $row);
-            }
-            return $array;
+        } catch (Exception $e){
+            throw new Exception($e->getMessage(), 1);
         }
     }
 
