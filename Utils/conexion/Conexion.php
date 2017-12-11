@@ -29,6 +29,10 @@ class Conexion {
         return $this->conexion->host_info;
     }
 
+    function errors(){
+        return $this->error;
+    }
+
     function select(String $query, array $params = []){
         if(count($params) == 0){ // Si es una query sin parámetros
             $array = [];
